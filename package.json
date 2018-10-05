@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/Tas-Kit/taskit-js-sdk/issues"
   },
-  "homepage": "https://github.com/Tas-Kit/taskit-js-sdk#readme"
+  "homepage": "https://github.com/Tas-Kit/taskit-js-sdk#readme",
+  "dependencies": {
+    "axios": "^0.18.0"
+  }
 }
