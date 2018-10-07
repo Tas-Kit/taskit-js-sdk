@@ -36,14 +36,14 @@ function TestTaskit() {
     // })
 
     // // Get Groups
-    // return this.miniApps[aid].service.loadGroup().then(({ data }) => {
+    // return this.miniApps[aid].service.loadGroups().then(({ data }) => {
     //   console.log(data)
     //   return data
     // })
 
     // // Get and delete all groups
-    // return this.miniApps[aid].service.loadGroup().then(({ data }) => {
-    //   return this.miniApps[aid].service.deleteGroup(data.result.map(info => info.oid))
+    // return this.miniApps[aid].service.loadGroups().then(({ data }) => {
+    //   return this.miniApps[aid].service.deleteGroups(data.result.map(info => info.oid))
     // })
   }).catch(error => {
     console.error(error)

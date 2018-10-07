@@ -17,12 +17,12 @@ function Taskit(appId, appKey) {
 }
 
 Taskit.prototype.saveGroup = saveGroup
-Taskit.prototype.loadGroup = loadGroup
-Taskit.prototype.deleteGroup = deleteGroup
+Taskit.prototype.loadGroups = loadGroups
+Taskit.prototype.deleteGroups = deleteGroups
 
 Taskit.prototype.saveSchedule = saveSchedule
-Taskit.prototype.loadSchedule = loadSchedule
-Taskit.prototype.deleteSchedule = deleteSchedule
+Taskit.prototype.loadSchedules = loadSchedules
+Taskit.prototype.deleteSchedules = deleteSchedules
 
 module.exports = Taskit
 
@@ -63,7 +63,7 @@ function saveGroup(groupInfo) {
   })
 }
 
-function loadGroup() {
+function loadGroups() {
   return axios({
     method: 'GET',
     url: `/tobject/${DEFAULT_ROOT_ID}/`,
@@ -72,7 +72,7 @@ function loadGroup() {
   })
 }
 
-function deleteGroup(deleteTargets) {
+function deleteGroups(deleteTargets) {
   if (!Array.isArray(deleteTargets) || deleteTargets.length === 0) {
     return new Promise(function (_, rej) { rej(MSG_ERR_PARAM.replace('{obj}', 'deleteTargets')) })
   }
@@ -89,6 +89,6 @@ function deleteGroup(deleteTargets) {
 
 function saveSchedule(scheduleInfo, groupId = null, groupKey = null) {}
 
-function loadSchedule(groupId, groupKey) {}
+function loadSchedules(groupId, groupKey) {}
 
-function deleteSchedule(groupId, groupKey) {}
+function deleteSchedules(deleteTargets, groupId, groupKey) {}

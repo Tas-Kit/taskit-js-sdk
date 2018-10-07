@@ -23,15 +23,15 @@ taskit.saveGroup({ name: 'HelloWorld' })
     .catch(error => console.error(error))
 
 // Get All Groups
-taskit.loadGroup()
+taskit.loadGroups()
     .then(({ data }) => console.log('All groups: ', data.result))
     .catch(error => console.error(error))
 
 // Get and delete All Groups
-taskit.loadGroup()
+taskit.loadGroups()
     .then(({ data }) => {
         console.log('All groups: ', data.result)
-        return taskit.deleteGroup(data.result.map(info => info.oid))
+        return taskit.deleteGroups(data.result.map(info => info.oid))
     })
     .catch(error => console.error(error))
 ```
