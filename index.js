@@ -87,8 +87,82 @@ function deleteGroups(deleteTargets) {
   })
 }
 
-function saveSchedule(scheduleInfo, groupId = null, groupKey = null) {}
+function saveSchedule(scheduleInfo, groupId, groupKey) {
+  var isInvalid = false
+  var errMsgs = []
 
-function loadSchedules(groupId, groupKey) {}
+  if (!groupId || !groupKey) {
+    isInvalid = true
+    errMsgs.push(MSG_ERR_IDENTIFIER)
+  }
 
-function deleteSchedules(deleteTargets, groupId, groupKey) {}
+  if (!scheduleInfo || !scheduleInfo.name) {
+    isInvalid = true
+    errMsgs.push(MSG_ERR_PARAM.replace('{obj}', 'scheduleInfo'))
+  }
+
+  if (isInvalid) {
+    return new Promise(function (_, rej) { rej(errMsgs.join(' ')) })
+  }
+
+  return axios({
+    method: 'POST',
+    url: `/tobject/${groupId}/`,
+    headers: { key: groupKey },
+    data: {
+      children: [{
+        labels: [ LABEL_SCHEDULE ],
+        properties: { name: scheduleInfo.name },
+      }],
+    },
+  })
+}
+
+function loadSchedules(groupId, groupKey) {
+  var isInvalid = false
+  var errMsgs = []
+
+  if (!groupId || !groupKey) {
+    isInvalid = true
+    errMsgs.push(MSG_ERR_IDENTIFIER)
+  }
+
+  if (isInvalid) {
+    return new Promise(function (_, rej) { rej(errMsgs.join(' ')) })
+  }
+
+  return axios({
+    method: 'GET',
+    url: `/tobject/${groupId}/`,
+    headers: { key: groupKey },
+    data: '{}',
+  })
+}
+
+function deleteSchedules(deleteTargets, groupId, groupKey) {
+  var isInvalid = false
+  var errMsgs = []
+
+  if (!groupId || !groupKey) {
+    isInvalid = true
+    errMsgs.push(MSG_ERR_IDENTIFIER)
+  }
+
+  if (!Array.isArray(deleteTargets) || deleteTargets.length === 0) {
+    isInvalid = true
+    errMsgs.push(MSG_ERR_PARAM.replace('{obj}', 'deleteTargets'))
+  }
+
+  if (isInvalid) {
+    return new Promise(function (_, rej) { rej(errMsgs.join(' ')) })
+  }
+
+  return axios({
+    method: 'DELETE',
+    url: `/tobject/${groupId}/`,
+    headers: { key: groupKey },
+    data: {
+      oid_list: deleteTargets,
+    },
+  })
+}
