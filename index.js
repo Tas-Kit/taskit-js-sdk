@@ -1,11 +1,19 @@
-const axios = require('axios').create({
+var axios = require('axios').create({
   baseURL: 'http://sandbox.tas-kit.com/api/v1/platform/',
 })
 
+axios.defaults.headers.common['Accept'] = 'application/json'
+axios.defaults.headers.common['Content-Type'] = 'application/json'
+
+var MSG_ERR_IDENTIFIER = 'Passed `oid`/`key` was invalid.'
+var MSG_ERR_PARAM = 'Passed `{obj}` was invalid.'
+
 function Taskit(appId, appKey) {
+  if (!appId || !appKey) {
+    throw new Error(MSG_ERR_IDENTIFIER)
+  }
   this.appId = appId
   this.appKey = appKey
-  this.defaultRootKey = 'root'
 }
 
 Taskit.prototype.saveGroup = saveGroup
@@ -22,48 +30,65 @@ module.exports = Taskit
 /**
  * Constants
  */
-const LABEL_GROUP = 'GroupModel'
-const LABEL_SCHEDULE = 'ScheduleModel'
-const LABEL_STAFF = 'StaffModel'
-const LABEL_REQUIREMENT = 'RequirementModel'
-const LABEL_ROLE = 'RoleModel'
-const LABEL_SETTING = 'SettingModel'
-const LABEL_ARRANGEMENT = 'ArrangementModel'
-const LABEL_AVAILABILITY = 'AvailabilityModel'
+var DEFAULT_ROOT_ID = 'root'
+
+var LABEL_GROUP = 'GroupModel'
+var LABEL_SCHEDULE = 'ScheduleModel'
+var LABEL_STAFF = 'StaffModel'
+var LABEL_REQUIREMENT = 'RequirementModel'
+var LABEL_ROLE = 'RoleModel'
+var LABEL_SETTING = 'SettingModel'
+var LABEL_ARRANGEMENT = 'ArrangementModel'
+var LABEL_AVAILABILITY = 'AvailabilityModel'
 
 
 /**
- * Implementation
+ * Implementations
  */
-function saveGroup(groupInfo, groupId = null, groupKey = null) {
-  const data = {
-    children: [{
-      labels: [ LABEL_GROUP ],
-      properties: groupInfo,
-    }],
+function saveGroup(groupInfo) {
+  if (!groupInfo || !groupInfo.name) {
+    return new Promise(function (_, rej) { rej(MSG_ERR_PARAM.replace('{obj}', 'groupInfo')) })
   }
 
-  if (groupId && groupKey) {
-    // Update Group
-    return axios.post(`/tobject/${groupId}`, {
-      headers: { key: groupKey },
-      data,
-    })
-  }
-
-  // Create Group
-  return axios.post(`/tobject/${this.defaultRootKey}`, {
+  return axios({
+    method: 'POST',
+    url: `/tobject/${DEFAULT_ROOT_ID}/`,
     headers: { key: this.appKey },
-    data,
+    data: {
+      children: [{
+        labels: [ LABEL_GROUP ],
+        properties: { name: groupInfo.name },
+      }],
+    },
   })
 }
 
-function loadGroup(groupId, groupKey) {}
+function loadGroup() {
+  return axios({
+    method: 'GET',
+    url: `/tobject/${DEFAULT_ROOT_ID}/`,
+    headers: { key: this.appKey },
+    data: '{}',
+  })
+}
 
-function deleteGroup(groupId, groupKey) {}
+function deleteGroup(deleteTargets) {
+  if (!Array.isArray(deleteTargets) || deleteTargets.length === 0) {
+    return new Promise(function (_, rej) { rej(MSG_ERR_PARAM.replace('{obj}', 'deleteTargets')) })
+  }
 
-function saveSchedule(scheduleInfo, scheduleId = null, scheduleKey = null) {}
+  return axios({
+    method: 'DELETE',
+    url: `/tobject/${DEFAULT_ROOT_ID}/`,
+    headers: { key: this.appKey },
+    data: {
+      oid_list: deleteTargets,
+    },
+  })
+}
 
-function loadSchedule(scheduleId, scheduleKey) {}
+function saveSchedule(scheduleInfo, groupId = null, groupKey = null) {}
 
-function deleteSchedule(scheduleId, scheduleKey) {}
+function loadSchedule(groupId, groupKey) {}
+
+function deleteSchedule(groupId, groupKey) {}
