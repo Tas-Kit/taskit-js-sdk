@@ -30,37 +30,12 @@ function TestTaskit() {
     // const aid = Object.keys(this.miniApps)[0]
 
     // // Create Group
-    // return this.miniApps[aid].service.saveGroup({ name: 'FirstGroup' }).then(({ data }) => {
+    // return this.miniApps[aid].service.createNode({
+    //   name: 'FirstGroup',
+    //   labels: ['GroupModel'],
+    // }).then(({ data }) => {
     //   console.log(data)
     //   return data
-    // })
-
-    // // Get Groups
-    // return this.miniApps[aid].service.loadGroups().then(({ data }) => {
-    //   console.log(data)
-    //   return data
-    // })
-
-    // // Get and delete all groups
-    // return this.miniApps[aid].service.loadGroups().then(({ data }) => {
-    //   return this.miniApps[aid].service.deleteGroups(data.result.map(info => info.oid))
-    // })
-
-    // // Get Group and create Schedule
-    // return this.miniApps[aid].service.loadGroups().then(({ data }) => {
-    //   console.log(data)
-    //   const { oid: groudId, key: groupKey } = data.result[0]
-    //   return this.miniApps[aid].service.saveSchedule({ name: 'FirstSchedule' }, groudId, groupKey)
-    // }).then(({ data }) => console.log(data))
-
-    // // Get Group and Schedule
-    // return this.miniApps[aid].service.loadGroups().then(({ data }) => {
-    //   console.log('Group: ', data)
-    //   const { oid: groudId, key: groupKey } = data.result[0]
-    //   return this.miniApps[aid].service.loadSchedules(groudId, groupKey).then(({ data }) => {
-    //     console.log('Schedule: ', data)
-    //     return data
-    //   })
     // })
   }).catch(error => {
     console.error(error)
