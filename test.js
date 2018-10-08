@@ -37,6 +37,17 @@ function TestTaskit() {
     //   console.log(data)
     //   return data
     // })
+
+    // // Fetch all groups
+    // return this.miniApps[aid].service.fetchNodes('root', this.miniApps[aid].key).then(({ data }) => {
+    //   console.log(data)
+    //   return data
+    // })
+
+    // // Fetch and delete all groups
+    // return this.miniApps[aid].service.fetchNodes('root', this.miniApps[aid].key).then(({ data }) => {
+    //   return this.miniApps[aid].service.deleteNodes(Object.keys(data.result), 'root', this.miniApps[aid].key)
+    // })
   }).catch(error => {
     console.error(error)
   })
