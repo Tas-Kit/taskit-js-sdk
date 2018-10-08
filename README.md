@@ -12,8 +12,10 @@ Taskit JS SDK
  *   key: string,
  *   role: number
  * }
- * type data.result = NodeInfo[]
+ * type data.result = {<oid: string>: NodeInfo}
  */
+
+import Taskit from 'taskit-js-sdk'
 
 const taskit = new Taskit(mini_app.aid, mini_app.key)
 
@@ -21,7 +23,7 @@ const taskit = new Taskit(mini_app.aid, mini_app.key)
 taskit.createNode({
     name: 'HelloWorld',
     labels: ['GroupModel'],
-})
+}, parent_oid, parent_key)
     .then(({ data }) => console.log('Created group: ', data.result))
     .catch(error => console.error(error))
 ```

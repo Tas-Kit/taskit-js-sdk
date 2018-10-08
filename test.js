@@ -33,7 +33,7 @@ function TestTaskit() {
     // return this.miniApps[aid].service.createNode({
     //   name: 'FirstGroup',
     //   labels: ['GroupModel'],
-    // }).then(({ data }) => {
+    // }, 'root', this.miniApps[aid].key).then(({ data }) => {
     //   console.log(data)
     //   return data
     // })

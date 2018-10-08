@@ -25,9 +25,7 @@ Taskit.prototype.createNode = function (props, oid, key) {
     errMsgs.push(MSG_ERR_IDENTIFIER)
   }
 
-  if ( !props || !props.name
-    || !Array.isArray(props.labels) || props.labels.length === 0
-  ) {
+  if (!props || !Array.isArray(props.labels) || props.labels.length === 0) {
     isInvalid = true
     errMsgs.push(MSG_ERR_PARAM.replace('{obj}', 'props'))
   }
@@ -36,14 +34,17 @@ Taskit.prototype.createNode = function (props, oid, key) {
     return new Promise(function (_, rej) { rej(errMsgs.join(' ')) })
   }
 
+  var labels = props.labels
+  delete props.labels
+
   return axios({
     method: 'POST',
     url: `/tobject/${oid}/`,
     headers: { key: key },
     data: {
       children: [{
-        labels: props.labels,
-        properties: { name: props.name },
+        labels: labels,
+        properties: props,
       }],
     },
   })
