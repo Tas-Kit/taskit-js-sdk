@@ -1,0 +1,27 @@
+{
+  "name": "taskit-js-sdk",
+  "version": "0.0.1",
+  "description": "taskit-js-sdk",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tas-Kit/taskit-js-sdk.git"
+  },
+  "keywords": [
+    "taskit",
+    "js",
+    "sdk"
+  ],
+  "author": "Tas-Kit",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Tas-Kit/taskit-js-sdk/issues"
+  },
+  "homepage": "https://github.com/Tas-Kit/taskit-js-sdk#readme",
+  "dependencies": {
+    "axios": "^0.18.0"
+  }
+}
