@@ -1,3 +1,6 @@
+var MSG_ERR_IDENTIFIER = 'Passed `oid`/`key` was invalid.'
+var MSG_ERR_PARAM = 'Passed params was invalid.'
+
 var axios = require('axios').create({
   baseURL: 'http://sandbox.tas-kit.com/api/v1/platform/',
 })
@@ -5,98 +8,69 @@ var axios = require('axios').create({
 axios.defaults.headers.common['Accept'] = 'application/json'
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 
-var MSG_ERR_IDENTIFIER = 'Passed `oid`/`key` was invalid.'
-var MSG_ERR_PARAM = 'Passed `{obj}` was invalid.'
-
-function Taskit(appId, appKey) {
-  if (!appId || !appKey) {
-    throw new Error(MSG_ERR_IDENTIFIER)
-  }
+function MiniApp(appId, appKey) {
   this.appId = appId
   this.appKey = appKey
+
+  TObject.call(this, { oid: 'root', key: appKey })
+
+  for (var method in TObject.prototype) {
+    if (!MiniApp.prototype.hasOwnProperty(method)) {
+      MiniApp.prototype[method] = TObject.prototype[method]
+    }
+  }
 }
 
-Taskit.prototype.createNode = function (props, oid, key) {
-  var isInvalid = false
-  var errMsgs = []
-
-  if (!oid || !key) {
-    isInvalid = true
-    errMsgs.push(MSG_ERR_IDENTIFIER)
+function TObject(nodeInfo) {
+  if (!nodeInfo || !nodeInfo.oid || !nodeInfo.key) {
+    throw new Error(MSG_ERR_IDENTIFIER)
   }
 
-  if (!props || !Array.isArray(props.labels) || props.labels.length === 0) {
-    isInvalid = true
-    errMsgs.push(MSG_ERR_PARAM.replace('{obj}', 'props'))
-  }
+  this.oid = nodeInfo.oid
+  this.key = nodeInfo.key
+}
 
-  if (isInvalid) {
-    return new Promise(function (_, rej) { rej(errMsgs.join(' ')) })
-  }
+TObject.prototype.getChildren = function () {
+  return axios({
+    method: 'GET',
+    url: '/tobject/' + this.oid + '/',
+    headers: { key: this.key },
+    data: '{}',
+  }).then(function (response) {
+    return Object.keys(response.data.result).map(function (oid) {
+      return new TObject(response.data.result[oid])
+    })
+  })
+}
 
-  var labels = props.labels
-  delete props.labels
+TObject.prototype.addChildren = function (props) {
+  if (!Array.isArray(props)) {
+    return new Promise(function (_, rej) { rej(MSG_ERR_PARAM) })
+  }
 
   return axios({
     method: 'POST',
-    url: `/tobject/${oid}/`,
-    headers: { key: key },
-    data: {
-      children: [{
-        labels: labels,
-        properties: props,
-      }],
-    },
+    url: '/tobject/' + this.oid + '/',
+    headers: { key: this.key },
+    data: { children: props },
+  }).then(function (response) {
+    return Object.keys(response.data.result).map(function (oid) {
+      return new TObject(response.data.result[oid])
+    })
   })
 }
 
-Taskit.prototype.fetchNodes = function (oid, key) {
-  var isInvalid = false
-  var errMsgs = []
-
-  if (!oid || !key) {
-    isInvalid = true
-    errMsgs.push(MSG_ERR_IDENTIFIER)
-  }
-
-  if (isInvalid) {
-    return new Promise(function (_, rej) { rej(errMsgs.join(' ')) })
-  }
-
-  return axios({
-    method: 'GET',
-    url: `/tobject/${oid}/`,
-    headers: { key: key },
-    data: '{}',
-  })
-}
-
-Taskit.prototype.deleteNodes = function (targets, oid, key) {
-  var isInvalid = false
-  var errMsgs = []
-
-  if (!oid || !key) {
-    isInvalid = true
-    errMsgs.push(MSG_ERR_IDENTIFIER)
-  }
-
-  if (!Array.isArray(targets) || targets.length === 0) {
-    isInvalid = true
-    errMsgs.push(MSG_ERR_PARAM.replace('{obj}', 'targets'))
-  }
-
-  if (isInvalid) {
-    return new Promise(function (_, rej) { rej(errMsgs.join(' ')) })
+TObject.prototype.removeChildren = function (childIds) {
+  if (!Array.isArray(childIds)) {
+    return new Promise(function (_, rej) { rej(MSG_ERR_PARAM) })
   }
 
   return axios({
     method: 'DELETE',
-    url: `/tobject/${oid}/`,
-    headers: { key: key },
-    data: {
-      oid_list: targets,
-    },
+    url: '/tobject/' + this.oid + '/',
+    headers: { key: this.key },
+    data: { oid_list: childIds },
   })
 }
 
-module.exports = Taskit
+module.exports = MiniApp

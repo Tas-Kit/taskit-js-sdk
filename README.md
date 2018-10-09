@@ -4,28 +4,19 @@ Taskit JS SDK
 ## Usage
 
 ```js
-/**
- * type NodeInfo = {
- *   oid: string,
- *   labels: array,
- *   properties: array,
- *   key: string,
- *   role: number
- * }
- * type data.result = {<oid: string>: NodeInfo}
- */
+import MiniApp from 'taskit-js-sdk'
 
-import Taskit from 'taskit-js-sdk'
+const app = new MiniApp(mini_app.aid, mini_app.key)
 
-const taskit = new Taskit(mini_app.aid, mini_app.key)
+// Fetch all children nodes
+app.getChildren().then(tobjs => console.log(tobjs.map(({ oid, key }) => ({ oid, key }))))
 
-// Create Group
-taskit.createNode({
-    name: 'HelloWorld',
-    labels: ['GroupModel'],
-}, parent_oid, parent_key)
-    .then(({ data }) => console.log('Created group: ', data.result))
-    .catch(error => console.error(error))
+// Add child node
+app.addChildren([{labels: ['GroupModel'], properties: { name: 'FirstGroup' }}])
+  .then(tobjs => tobjs[0].addChildren([{labels: ['ScheduleModel'], properties: { name: 'FirstSchedule' }}]))
+
+// Delete children nodes
+app.getChildren().then(tobjs => app.removeChildren(tobjs.map(tobj => tobj.oid))).then(data => console.log(data))
 ```
 
 ## Local Testing

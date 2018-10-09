@@ -1,5 +1,5 @@
 const config = require('./credentials.json')
-const Taskit = require('./index')
+const MiniApp = require('./index')
 
 const axios = require('axios').create({
   baseURL: 'http://sandbox.tas-kit.com/api/v1/platform/',
@@ -19,7 +19,7 @@ function TestTaskit() {
         this.getAppInfo(info.aid).then(({ data }) => {
           this.miniApps[info.aid] = {
             ...data.mini_app,
-            service: new Taskit(data.mini_app.aid, data.mini_app.key),
+            service: new MiniApp(data.mini_app.aid, data.mini_app.key),
           }
         })
       )
@@ -27,27 +27,18 @@ function TestTaskit() {
     return Promise.all(promises)
   }).then(_ => {
     // // Test API here, e.g.,
-    // const aid = Object.keys(this.miniApps)[0]
+    const aid = Object.keys(this.miniApps)[0]
+    const app = this.miniApps[aid].service
 
-    // // Create Group
-    // return this.miniApps[aid].service.createNode({
-    //   name: 'FirstGroup',
-    //   labels: ['GroupModel'],
-    // }, 'root', this.miniApps[aid].key).then(({ data }) => {
-    //   console.log(data)
-    //   return data
-    // })
+    // // Fetch all children nodes
+    // app.getChildren().then(tobjs => console.log(tobjs.map(({ oid, key }) => ({ oid, key }))))
 
-    // // Fetch all groups
-    // return this.miniApps[aid].service.fetchNodes('root', this.miniApps[aid].key).then(({ data }) => {
-    //   console.log(data)
-    //   return data
-    // })
+    // // Add child node
+    // app.addChildren([{labels: ['GroupModel'], properties: { name: 'FirstGroup' }}])
+    //   .then(tobjs => tobjs[0].addChildren([{labels: ['ScheduleModel'], properties: { name: 'FirstSchedule' }}]))
 
-    // // Fetch and delete all groups
-    // return this.miniApps[aid].service.fetchNodes('root', this.miniApps[aid].key).then(({ data }) => {
-    //   return this.miniApps[aid].service.deleteNodes(Object.keys(data.result), 'root', this.miniApps[aid].key)
-    // })
+    // // Delete children nodes
+    // app.getChildren().then(tobjs => app.removeChildren(tobjs.map(tobj => tobj.oid))).then(data => console.log(data))
   }).catch(error => {
     console.error(error)
   })
