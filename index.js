@@ -45,7 +45,7 @@ TObject.prototype.getChildren = function () {
 
 TObject.prototype.addChildren = function (props) {
   if (!Array.isArray(props)) {
-    return new Promise(function (_, rej) { rej(MSG_ERR_PARAM) })
+    return new Promise(function (_, rej) { rej({ data: { message: MSG_ERR_PARAM } }) })
   }
 
   return axios({
@@ -62,7 +62,7 @@ TObject.prototype.addChildren = function (props) {
 
 TObject.prototype.removeChildren = function (childIds) {
   if (!Array.isArray(childIds)) {
-    return new Promise(function (_, rej) { rej(MSG_ERR_PARAM) })
+    return new Promise(function (_, rej) { rej({ data: { message: MSG_ERR_PARAM } }) })
   }
 
   return axios({

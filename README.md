@@ -19,6 +19,20 @@ app.addChildren([{labels: ['GroupModel'], properties: { name: 'FirstGroup' }}])
 app.getChildren().then(tobjs => app.removeChildren(tobjs.map(tobj => tobj.oid))).then(data => console.log(data))
 ```
 
+## Data Structure
+
+```
+type TObject = {
+    oid: string
+    key: string
+    getChildren: func(): Promise<TObject[], {data: {message: string}}>
+    addChildren: func(props): Promise<TObject[], {data: {message: string}}>
+    removeChildren: func(childIds): Promise<originResponse, {data: {message: string}}>
+}
+
+type tobjs = TObject[]
+```
+
 ## Local Testing
 
 1. Create `credentials.json` with content `{ "JWT": "eyJ0eXAiOiJKV1Q***" }`
