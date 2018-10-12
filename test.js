@@ -1,5 +1,5 @@
 const config = require('./credentials.json')
-const MiniApp = require('./index')
+const { TObject: MiniApp } = require('./index')
 
 const axios = require('axios').create({
   baseURL: 'http://sandbox.tas-kit.com/api/v1/platform/',
@@ -19,7 +19,13 @@ function TestTaskit() {
         this.getAppInfo(info.aid).then(({ data }) => {
           this.miniApps[info.aid] = {
             ...data.mini_app,
-            service: new MiniApp(data.mini_app.aid, data.mini_app.key),
+            service: new MiniApp(data.mini_app.aid, data.mini_app.key, {
+              transformParams: {
+                addChildren: function (labels, properties) {
+                  return [{ labels, properties }]
+                },
+              },
+            }),
           }
         })
       )
@@ -29,13 +35,16 @@ function TestTaskit() {
     // // Test API here, e.g.,
     const aid = Object.keys(this.miniApps)[0]
     const app = this.miniApps[aid].service
+    // console.log(this.platformRootKey)
+    // console.log(JSON.stringify(this.miniApps, null, 4))
 
     // // Fetch all children nodes
-    // app.getChildren().then(tobjs => console.log(tobjs.map(({ oid, key }) => ({ oid, key }))))
+    // app.getChildren().then(tobjs => tobjs[0].getChildren()).then(tobjs => console.log(JSON.stringify(tobjs, null, 4)))
 
     // // Add child node
-    // app.addChildren([{labels: ['GroupModel'], properties: { name: 'FirstGroup' }}])
-    //   .then(tobjs => tobjs[0].addChildren([{labels: ['ScheduleModel'], properties: { name: 'FirstSchedule' }}]))
+    // app.addChildren(['GroupModel'], { name: 'TransformedGroup' })
+    //   .then(tobjs => tobjs[0].addChildren(['ScheduleModel'], { name: 'TransformedSchedule' }))
+    //   .then(tobjs => console.log(tobjs))
 
     // // Delete children nodes
     // app.getChildren().then(tobjs => app.removeChildren(tobjs.map(tobj => tobj.oid))).then(data => console.log(data))
