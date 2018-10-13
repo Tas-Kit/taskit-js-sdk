@@ -4,7 +4,7 @@ Taskit JS SDK
 ## Usage
 
 ```js
-import MiniApp from 'taskit-js-sdk'
+const { TObject: MiniApp } = require('taskit-js-sdk')
 
 const app = new MiniApp(mini_app.aid, mini_app.key)
 
@@ -25,12 +25,18 @@ app.getChildren().then(tobjs => app.removeChildren(tobjs.map(tobj => tobj.oid)))
 type TObject = {
     oid: string
     key: string
-    getChildren: func(): Promise<TObject[], {data: {message: string}}>
-    addChildren: func(props): Promise<TObject[], {data: {message: string}}>
-    removeChildren: func(childIds): Promise<originResponse, {data: {message: string}}>
+    getChildren: func(): Promise<TObject[], Error>
+    addChildren: func(props): Promise<TObject[], Error>
+    removeChildren: func(childIds): Promise<Response, Error>
 }
 
 type tobjs = TObject[]
+
+type Response = {
+    data: {[prop: string]: any}
+}
+
+type Error = {data: {message: string}}
 ```
 
 ## Local Testing
