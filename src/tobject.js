@@ -41,6 +41,7 @@ TObject.prototype.getChildren = function () {
     url: '/tobject/' + this.oid + '/',
     headers: { key: this.key },
     data: '{}',
+    withCredentials: true,
   }).then(function (response) {
     return Object.keys(response.data.result).map(function (oid) {
       return new TObject(response.data.result[oid])
@@ -62,6 +63,7 @@ TObject.prototype.addChildren = function (props) {
     url: '/tobject/' + this.oid + '/',
     headers: { key: this.key },
     data: { children: props },
+    withCredentials: true,
   }).then(function (response) {
     return Object.keys(response.data.result).map(function (oid) {
       return new TObject(response.data.result[oid])
@@ -83,6 +85,7 @@ TObject.prototype.removeChildren = function (childIds) {
     url: '/tobject/' + this.oid + '/',
     headers: { key: this.key },
     data: { oid_list: childIds },
+    withCredentials: true,
   })
 }
 
