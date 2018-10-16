@@ -40,7 +40,6 @@ TObject.prototype.getChildren = function () {
     method: 'GET',
     url: '/tobject/' + this.oid + '/',
     headers: { key: this.key },
-    data: '{}',
     withCredentials: true,
   }).then(function (response) {
     return Object.keys(response.data.result).map(function (oid) {
