@@ -70,6 +70,16 @@ TObject.prototype.addChildren = function (props) {
   })
 }
 
+TObject.prototype.changePermission = function (target_uid, oid, target_role){
+    return axios({
+        method: 'PATCH',
+        url: '/tobject/' + this.oid + '/',
+        headers: { key: this.key },
+        data: { target_uid, oid, target_role },
+        withCredentials: true
+    })
+}
+
 TObject.prototype.removeChildren = function (childIds) {
   if (this.transformParams && this.transformParams.removeChildren) {
     childIds = this.transformParams.removeChildren.apply(null, arguments)
