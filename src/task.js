@@ -187,7 +187,7 @@ TaskModel.prototype.revoke_invitation = function(uid){
     })
 }
 
-TaskGraph.createTask = function(task_info){
+TaskModel.createTask = function(task_info){
     return axios({
         method: 'POST',
         url: 'task/',
