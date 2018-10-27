@@ -34,8 +34,9 @@ StepModel.prototype.serialize = function(){
 }
 
 StepModel.buildSteps = function(nodes){
-    let steps = {};
-    for (let step of nodes){
+    var steps = {};
+    for (var i = 0; i < nodes.length; i++){
+        var step = nodes[i];
         steps[step.sid] = new StepModel(step.sid, step);
     }
     return steps;
@@ -50,7 +51,7 @@ function TaskGraph(taskModel, steps, edges){
 TaskGraph.prototype.getComponents = function(stepModel){
     return axios({
         method: 'GET',
-        url: `task/${this.taskModel.tid}/${stepModel.sid}/component/`,
+        url: 'task/' + this.taskModel.tid + '/' + stepModel.sid + '/component/',
         withCredentials: true
     }).then(function(response){
         return response.data.components;
@@ -60,7 +61,7 @@ TaskGraph.prototype.getComponents = function(stepModel){
 TaskGraph.prototype.deleteComponents = function(stepModel, oid_list){
     return axios({
         method: 'DELETE',
-        url: `task/${this.taskModel.tid}/${stepModel.sid}/component/`,
+        url: 'task/' + this.taskModel.tid + '/' + stepModel.sid + '/component/',
         withCredentials: true,
         data: {
             oid_list: oid_list
@@ -73,15 +74,17 @@ TaskGraph.prototype.deleteComponents = function(stepModel, oid_list){
 TaskGraph.prototype.addComponents = function(stepModel, components){
     return axios({
         method: 'POST',
-        url: `task/${this.taskModel.tid}/${stepModel.sid}/component/`,
+        url: 'task/' + this.taskModel.tid + '/' + stepModel.sid + '/component/',
         withCredentials: true,
         data: {
             components: components
         }
-    }).then(response => response.data.components);
+    }).then(function(response){
+      response.data.components
+    });
 }
 
-TaskGraph.prototype.connect = function(fromStep, toStep, label=null){
+TaskGraph.prototype.connect = function(fromStep, toStep, label){
     this.edges.push({
         to: toStep.sid,
         from: fromStep.sid,
@@ -90,11 +93,10 @@ TaskGraph.prototype.connect = function(fromStep, toStep, label=null){
 }
 
 TaskGraph.prototype.deleteStep = function(stepModel){
-    let sid = stepModel.sid;
+    var sid = stepModel.sid;
     delete this.steps[sid];
     for( var i = this.edges.length - 1; i >= 0; i--){
-        let edge = this.edges[i];
-        console.log(sid, edge.from, edge.to);
+        var edge = this.edges[i];
         if (edge.from === sid || edge.to === sid) {
             this.edges.splice(i, 1);
         }
@@ -102,18 +104,19 @@ TaskGraph.prototype.deleteStep = function(stepModel){
 }
 
 TaskGraph.prototype.addStep = function(step){
-    let sid = guidGenerator();
+    var sid = guidGenerator();
     step.sid = sid;
-    let stepModel = new StepModel(sid, step);
+    var stepModel = new StepModel(sid, step);
     this.steps[sid] = stepModel;
     return stepModel;
 }
 
 TaskGraph.prototype.serialize = function(){
-    let data = {};
+    var data = {};
     data.task_info = this.taskModel.task;
     data.nodes = [];
-    for (let stepModel of Object.values(this.steps)){
+    for (var key in this.steps){
+        var stepModel = this.steps[key];
         data.nodes.push(stepModel.serialize())
     }
     data.edges = this.edges;
@@ -121,10 +124,10 @@ TaskGraph.prototype.serialize = function(){
 }
 
 TaskGraph.prototype.save = function(){
-    let data = this.serialize();
+    var data = this.serialize();
     return axios({
         method: 'PATCH',
-        url: `task/graph/${this.taskModel.tid}/`,
+        url: 'task/graph/' + this.taskModel.tid + '/',
         withCredentials: true,
         data: data
     }).then(function(response){
@@ -133,9 +136,9 @@ TaskGraph.prototype.save = function(){
 }
 
 TaskGraph.buildTaskGraph = function(data){
-    let task = data.task_info;
-    let taskModel = new TaskModel(task.tid, task, data.users[0].has_task);
-    let taskGraph = new TaskGraph(taskModel, StepModel.buildSteps(data.nodes), data.edges);
+    var task = data.task_info;
+    var taskModel = new TaskModel(task.tid, task, data.users[0].has_task);
+    var taskGraph = new TaskGraph(taskModel, StepModel.buildSteps(data.nodes), data.edges);
     return taskGraph;
 }
 
@@ -145,11 +148,11 @@ function TaskModel(tid, task, has_task){
     this.has_task = has_task;
 }
 
-TaskModel.prototype.trigger = function(step=null){
-    let that = this;
+TaskModel.prototype.trigger = function(){
+    var that = this;
     return axios({
         method: 'POST',
-        url: `task/trigger/${that.tid}/`,
+        url: 'task/trigger/' + that.tid + '/',
         withCredentials: true,
     }).then(function(response){
         return TaskGraph.buildTaskGraph(response.data);
@@ -157,29 +160,29 @@ TaskModel.prototype.trigger = function(step=null){
 }
 
 TaskModel.prototype.invite = function(username){
-    let that = this;
+    var that = this;
     return axios({
         method: 'POST',
-        url: `task/invitation/${that.tid}/`,
+        url: 'task/invitation/' + that.tid + '/',
         withCredentials: true,
         data: {
             username: username
         }
-    }).then(response => {
+    }).then(function(response){
       return response.data;
     })
 }
 
 TaskModel.prototype.revoke_invitation = function(uid){
-    let that = this;
+    var that = this;
     return axios({
         method: 'POST',
-        url: `task/invitation/revoke/${that.tid}/`,
+        url: 'task/invitation/revoke/' + that.tid + '/',
         withCredentials: true,
         data: {
             uid: uid
         }
-    }).then(response => {
+    }).then(function(response){
         return response.data;
     })
 }
@@ -196,13 +199,13 @@ TaskGraph.createTask = function(task_info){
 }
 
 TaskModel.prototype.getGraph = function(){
-    let that = this;
+    var that = this;
     return axios({
         method: 'GET',
-        url: `task/graph/${this.tid}/`,
+        url: 'task/graph/' + this.tid + '/',
         withCredentials: true
     }).then(function(response) {
-        let taskGraph = new TaskGraph(that, StepModel.buildSteps(response.data.nodes), response.data.edges);
+        var taskGraph = new TaskGraph(that, StepModel.buildSteps(response.data.nodes), response.data.edges);
         return taskGraph;
     });
 }
@@ -210,7 +213,7 @@ TaskModel.prototype.getGraph = function(){
 TaskGraph.getTask = function(tid){
     return axios({
         method: 'GET',
-        url: `task/${tid}/`,
+        url: 'task/' + tid + '/',
         withCredentials: true,
     }).then(function(response){
         return new TaskModel(tid, response.data, {});
@@ -223,9 +226,9 @@ TaskGraph.getAllTasks = function(){
         url: 'task/',
         withCredentials: true,
     }).then(function(response) {
-        let result = {};
-        for (let tid of Object.keys(response.data)){
-            let taskData = response.data[tid];
+        var result = {};
+        for (var tid in response.data){
+            var taskData = response.data[tid];
             result[tid] = new TaskModel(tid, taskData.task, taskData.has_task);
         }
         return result;
