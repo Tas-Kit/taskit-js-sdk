@@ -18,227 +18,218 @@ function guidGenerator() {
     return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
 }
 
-class ComponentModel{
-    constructor(app, oid, cmp){
-        this.app = app;
-        this.oid = oid;
-        this.cmp = cmp;
+function ComponentModel(app, oid, cmp){
+    this.app = app;
+    this.oid = oid;
+    this.cmp = cmp;
+}
+
+function StepModel(sid, props){
+    this.sid = sid;
+    this.props = props;
+}
+
+StepModel.prototype.serialize = function(){
+    return this.props;
+}
+
+StepModel.buildSteps = function(nodes){
+    let steps = {};
+    for (let step of nodes){
+        steps[step.sid] = new StepModel(step.sid, step);
+    }
+    return steps;
+}
+
+function TaskGraph(taskModel, steps, edges){
+    this.taskModel = taskModel;
+    this.steps = steps;
+    this.edges = edges;
+}
+
+TaskGraph.prototype.getComponents = function(stepModel){
+    return axios({
+        method: 'GET',
+        url: `task/${this.taskModel.tid}/${stepModel.sid}/component/`,
+        withCredentials: true
+    }).then(function(response){
+        return response.data.components;
+    })
+}
+
+TaskGraph.prototype.deleteComponents = function(stepModel, oid_list){
+    return axios({
+        method: 'DELETE',
+        url: `task/${this.taskModel.tid}/${stepModel.sid}/component/`,
+        withCredentials: true,
+        data: {
+            oid_list: oid_list
+        }
+    }).then(function(response){
+        return response.data.components;
+    })
+}
+
+TaskGraph.prototype.addComponents = function(stepModel, components){
+    return axios({
+        method: 'POST',
+        url: `task/${this.taskModel.tid}/${stepModel.sid}/component/`,
+        withCredentials: true,
+        data: {
+            components: components
+        }
+    }).then(response => response.data.components);
+}
+
+TaskGraph.prototype.connect = function(fromStep, toStep, label=null){
+    this.edges.push({
+        to: toStep.sid,
+        from: fromStep.sid,
+        label: label
+    });
+}
+
+TaskGraph.prototype.deleteStep = function(stepModel){
+    let sid = stepModel.sid;
+    delete this.steps[sid];
+    for( var i = this.edges.length - 1; i >= 0; i--){
+        let edge = this.edges[i];
+        console.log(sid, edge.from, edge.to);
+        if (edge.from === sid || edge.to === sid) {
+            this.edges.splice(i, 1);
+        }
     }
 }
 
-class StepModel{
-    constructor(sid, props){
-        this.sid = sid;
-        this.props = props;
-    }
-
-    serialize(){
-        return this.props;
-    }
-
-    static buildSteps(nodes){
-        let steps = {};
-        for (let step of nodes){
-            steps[step.sid] = new StepModel(step.sid, step);
-        }
-        return steps;
-    }
+TaskGraph.prototype.addStep = function(step){
+    let sid = guidGenerator();
+    step.sid = sid;
+    let stepModel = new StepModel(sid, step);
+    this.steps[sid] = stepModel;
+    return stepModel;
 }
 
-class TaskGraph{
-    constructor(taskModel, steps, edges){
-        this.taskModel = taskModel;
-        this.steps = steps;
-        this.edges = edges;
+TaskGraph.prototype.serialize = function(){
+    let data = {};
+    data.task_info = this.taskModel.task;
+    data.nodes = [];
+    for (let stepModel of Object.values(this.steps)){
+        data.nodes.push(stepModel.serialize())
     }
+    data.edges = this.edges;
+    return data;
+}
 
-    getComponents(stepModel){
-        return axios({
-            method: 'GET',
-            url: `task/${this.taskModel.tid}/${stepModel.sid}/component/`,
-            withCredentials: true
-        }).then(function(response){
-            return response.data.components;
-        })
-    }
+TaskGraph.prototype.save = function(){
+    let data = this.serialize();
+    return axios({
+        method: 'PATCH',
+        url: `task/graph/${this.taskModel.tid}/`,
+        withCredentials: true,
+        data: data
+    }).then(function(response){
+        return TaskGraph.buildTaskGraph(response.data);
+    });
+}
 
-    deleteComponents(stepModel, oid_list){
-        return axios({
-            method: 'DELETE',
-            url: `task/${this.taskModel.tid}/${stepModel.sid}/component/`,
-            withCredentials: true,
-            data: {
-                oid_list: oid_list
-            }
-        }).then(function(response){
-            return response.data.components;
-        })
-    }
+TaskGraph.buildTaskGraph = function(data){
+    let task = data.task_info;
+    let taskModel = new TaskModel(task.tid, task, data.users[0].has_task);
+    let taskGraph = new TaskGraph(taskModel, StepModel.buildSteps(data.nodes), data.edges);
+    return taskGraph;
+}
 
-    addComponents(stepModel, components){
-        return axios({
-            method: 'POST',
-            url: `task/${this.taskModel.tid}/${stepModel.sid}/component/`,
-            withCredentials: true,
-            data: {
-                components: components
-            }
-        }).then(response => response.data.components);
-    }
+function TaskModel(tid, task, has_task){
+    this.tid = tid;
+    this.task = task;
+    this.has_task = has_task;
+}
 
-    connect(fromStep, toStep, label=null){
-        this.edges.push({
-            to: toStep.sid,
-            from: fromStep.sid,
-            label: label
-        });
-    }
+TaskModel.prototype.trigger = function(step=null){
+    let that = this;
+    return axios({
+        method: 'POST',
+        url: `task/trigger/${that.tid}/`,
+        withCredentials: true,
+    }).then(function(response){
+        return TaskGraph.buildTaskGraph(response.data);
+    });
+}
 
-    deleteStep(stepModel){
-        let sid = stepModel.sid;
-        delete this.steps[sid];
-        for( var i = this.edges.length - 1; i >= 0; i--){
-            let edge = this.edges[i];
-            console.log(sid, edge.from, edge.to);
-            if (edge.from === sid || edge.to === sid) {
-                this.edges.splice(i, 1);
-            }
+TaskModel.prototype.invite = function(username){
+    let that = this;
+    return axios({
+        method: 'POST',
+        url: `task/invitation/${that.tid}/`,
+        withCredentials: true,
+        data: {
+            username: username
         }
-    }
+    }).then(response => {
+      return response.data;
+    })
+}
 
-    addStep(step){
-        let sid = guidGenerator();
-        step.sid = sid;
-        let stepModel = new StepModel(sid, step);
-        this.steps[sid] = stepModel;
-        return stepModel;
-    }
-
-    serialize(){
-        let data = {};
-        data.task_info = this.taskModel.task;
-        data.nodes = [];
-        for (let stepModel of Object.values(this.steps)){
-            data.nodes.push(stepModel.serialize())
+TaskModel.prototype.revoke_invitation = function(uid){
+    let that = this;
+    return axios({
+        method: 'POST',
+        url: `task/invitation/revoke/${that.tid}/`,
+        withCredentials: true,
+        data: {
+            uid: uid
         }
-        data.edges = this.edges;
-        return data;
-    }
+    }).then(response => {
+        return response.data;
+    })
+}
 
-    save(){
-        let data = this.serialize();
-        console.log(data);
-        return axios({
-            method: 'PATCH',
-            url: `task/graph/${this.taskModel.tid}/`,
-            withCredentials: true,
-            data: data
-        }).then(function(response){
-            return TaskGraph.buildTaskGraph(response.data);
-        });
-    }
+TaskGraph.createTask = function(task_info){
+    return axios({
+        method: 'POST',
+        url: 'task/',
+        data: task_info,
+        withCredentials: true
+    }).then(function(response){
+        return TaskGraph.buildTaskGraph(response.data);
+    });
+}
 
-    static buildTaskGraph(data){
-        let task = data.task_info;
-        let taskModel = new TaskModel(task.tid, task, data.users[0].has_task);
-        let taskGraph = new TaskGraph(taskModel, StepModel.buildSteps(data.nodes), data.edges);
+TaskModel.prototype.getGraph = function(){
+    let that = this;
+    return axios({
+        method: 'GET',
+        url: `task/graph/${this.tid}/`,
+        withCredentials: true
+    }).then(function(response) {
+        let taskGraph = new TaskGraph(that, StepModel.buildSteps(response.data.nodes), response.data.edges);
         return taskGraph;
-    }
+    });
 }
 
-class TaskModel{
-    constructor(tid, task, has_task){
-        this.tid = tid;
-        this.task = task;
-        this.has_task = has_task;
-    }
+TaskGraph.getTask = function(tid){
+    return axios({
+        method: 'GET',
+        url: `task/${tid}/`,
+        withCredentials: true,
+    }).then(function(response){
+        return new TaskModel(tid, response.data, {});
+    });
+}
 
-    trigger(step=null){
-        let that = this;
-        return axios({
-            method: 'POST',
-            url: `task/trigger/${that.tid}/`,
-            withCredentials: true,
-        }).then(function(response){
-            return TaskGraph.buildTaskGraph(response.data);
-        });
-    }
-
-    invite(username){
-        let that = this;
-        return axios({
-            method: 'POST',
-            url: `task/invitation/${that.tid}/`,
-            withCredentials: true,
-            data: {
-                username: username
-            }
-        }).then(response => {
-          return response.data;
-        })
-    }
-
-    revoke_invitation(uid){
-        let that = this;
-        return axios({
-            method: 'POST',
-            url: `task/invitation/revoke/${that.tid}/`,
-            withCredentials: true,
-            data: {
-                uid: uid
-            }
-        }).then(response => {
-            return response.data;
-        })
-    }
-
-    static createTask(task_info){
-        return axios({
-            method: 'POST',
-            url: 'task/',
-            data: task_info,
-            withCredentials: true
-        }).then(function(response){
-            return TaskGraph.buildTaskGraph(response.data);
-        });
-    }
-
-    getGraph(){
-        let that = this;
-        return axios({
-            method: 'GET',
-            url: `task/graph/${this.tid}/`,
-            withCredentials: true
-        }).then(function(response) {
-            let taskGraph = new TaskGraph(that, StepModel.buildSteps(response.data.nodes), response.data.edges);
-            return taskGraph;
-        });
-    }
-
-    static getTask(tid){
-        return axios({
-            method: 'GET',
-            url: `task/${tid}/`,
-            withCredentials: true,
-        }).then(function(response){
-            return new TaskModel(tid, response.data, {});
-        });
-    }
-
-    static getAllTasks(){
-        return axios({
-            method: 'GET',
-            url: 'task/',
-            withCredentials: true,
-        }).then(function(response) {
-            let result = {};
-            for (let tid of Object.keys(response.data)){
-                let taskData = response.data[tid];
-                result[tid] = new TaskModel(tid, taskData.task, taskData.has_task);
-            }
-            return result;
-        });
-    }
+TaskGraph.getAllTasks = function(){
+    return axios({
+        method: 'GET',
+        url: 'task/',
+        withCredentials: true,
+    }).then(function(response) {
+        let result = {};
+        for (let tid of Object.keys(response.data)){
+            let taskData = response.data[tid];
+            result[tid] = new TaskModel(tid, taskData.task, taskData.has_task);
+        }
+        return result;
+    });
 }
 
 module.exports = TaskModel

@@ -75,7 +75,10 @@ TObject.prototype.changePermission = function (target_uid, oid, target_role){
         method: 'PATCH',
         url: '/tobject/' + this.oid + '/',
         headers: { key: this.key },
-        data: { target_uid, oid, target_role },
+        data: {
+          target_uid: target_uid,
+          oid: oid,
+          target_role: target_role },
         withCredentials: true
     })
 }
