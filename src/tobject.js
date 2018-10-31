@@ -121,4 +121,6 @@ function MiniApp(appId, appKey, config) {
   }
 }
 
+MiniApp.TObject = TObject;
+
 module.exports = MiniApp
