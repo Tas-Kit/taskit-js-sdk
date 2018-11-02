@@ -9,7 +9,7 @@ var win = (
 
 var axios = require('axios').create({
   baseURL: (win.location && win.location.origin && win.location.origin.indexOf('localhost') === -1
-    ? win.location.origin + '/api/v1/platform/'
+    ? win.location.origin + '/api/v1/userservice/'
     : 'http://sandbox.tas-kit.com/api/v1/userservice/'
   ),
 })
